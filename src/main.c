@@ -3,8 +3,10 @@
 #include<string.h>
 #include "argparser.h"
 #include "util_ls.h"
+#include "util_cd.h"
 
-int main(int argc, char** argv) {
+
+int main(int argc, char** argv){
     int argscnt=0;
     int showdirs=0;
     int hreadable=0;
@@ -54,9 +56,7 @@ int main(int argc, char** argv) {
             
         }
 
-        return 0;
-
-    } else if(strcmp(argv[1], "task2") == 0) {
+    } else if(strcmp(argv[1], "task2") == 0){
         struct argument* args=malloc(100 * sizeof(struct argument));
 
         //Diferit de functia de la task1
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
         for(int i=0; i<argscnt; i++){
             if(args[i].type == 'f'){
                 // for(int j=0;j<args[i].ids; )
-                for(int j=0; j<args[i].idscnt; j++) {
+                for(int j=0; j<args[i].idscnt; j++){
                     if(strcmp(args[i].ids[j].id, "d")==0 || strcmp(args[i].ids[j].id, "directory")==0)
                         showdirs = 1;
                     if(strcmp(args[i].ids[j].id, "h")==0 || strcmp(args[i].ids[j].id, "human-readable")==0)
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
             }
         }
         
-        char* dir_param = argv[2];
+        char* dir_param=argv[2];
         if(dir_param == NULL) dir_param = ".";
         
         FILE* out = fopen(output_fname, "w");
@@ -107,8 +107,26 @@ int main(int argc, char** argv) {
                 free(args[i].value);
             
         }
+
+    } else if(strcmp(argv[1], "task3")== 0){
+        const char* srcpath = argv[2];
+        const char* dstpath = argv[3];
+        const char* outpath = NULL;
+    
+        for(int i=4; i<argc; i++)
+            if(strncmp(argv[i], "--out=", 6) == 0)
+                outpath = argv[i] + 6;
+    
+        if(outpath==NULL){
+            fprintf(stderr, "outpath does not exist\n");
+            return 1;
+        }
+    
+        util_cd(srcpath, dstpath, outpath);
         return 0;
     }
-    // printf("%s", "invalid task name (argv[1])");
-    return 1;
+    
+
+    printf("%s", "invalid task \n");
+    return 0;
 }

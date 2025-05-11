@@ -150,9 +150,12 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
 
 
     // free 
-    for(int i = 0; i < filecnt; ++i)
+    for(int i=0; i<filecnt; i++)
         free(files[i].path);
 
+    for(int i=0; i<subdircnt; i++)
+        if(subdirs[i]) free(subdirs[i]);
+    
 }
 
 void util_ls(char* basedir, int showdirs, int hreadable, int recursive, FILE* out) {
