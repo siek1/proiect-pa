@@ -51,7 +51,7 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
     
     entry=readdir(dir);
     while(entry != NULL){
-        // if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+        // if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
             entry = readdir(dir);
             continue;
@@ -77,11 +77,11 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
     if(depth == 0){
         for(int j=0; j<depth; ++j) fprintf(out, "    ");
         showsize(4096, hreadable, out);
-        fprintf(out, " . \n");
+        fprintf(out, " .\n");
     
         for(int j=0; j<depth; ++j) fprintf(out, "    ");
         showsize(4096, hreadable, out);
-        fprintf(out, " .. \n");
+        fprintf(out, " ..\n");
     }
 
     struct mrg{
@@ -139,7 +139,7 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
         for(int j=0; j<depth; j++)
             fprintf(out, "    ");
         showsize(merged[i].size, hreadable, out);
-        fprintf(out, " %s \n", merged[i].name);
+        fprintf(out, " %s\n", merged[i].name);
         
         // list dir recursively just after printing it
         if(recursive && merged[i].isdir){
@@ -158,6 +158,6 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
     
 }
 
-void util_ls(char* basedir, int showdirs, int hreadable, int recursive, FILE* out) {
+void util_ls(char* basedir, int showdirs, int hreadable, int recursive, FILE* out){
     listdir(basedir, 0, showdirs, hreadable, recursive, out);
 }

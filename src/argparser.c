@@ -103,7 +103,7 @@ void procArgv(int argc, char** argv, struct argument* args, int* argscnt){
             continue;
 
         int ok = 0;
-        for (int j =0; j < *argscnt; j++){
+        for(int j =0; j < *argscnt; j++){
             if(ok) break;
             for(int k=0; k<args[j].idscnt; k++){
                 char complet[100];
@@ -179,7 +179,7 @@ void printArg(FILE* out, const struct argument* arg){
                 fprintf(out, "--%s", arg->ids[0].id);
             else
                 fprintf(out, "-%s", arg->ids[0].id);
-            for (int j=1; j <arg->idscnt; j++){
+            for(int j=1; j <arg->idscnt; j++){
                 if(arg->ids[j].type == 'l')
                     fprintf(out, " --%s", arg->ids[j].id);
                 else
@@ -226,13 +226,13 @@ void generateArgsFromArgv(int argc, char** argv, struct argument* args, int* arg
                 args[*argscnt].ids =malloc(sizeof(struct id_entry));
                 
                 //am adaugat perror pentru ca am avut o problema cu valgrind
-                if(args[*argscnt].ids==NULL) {
+                if(args[*argscnt].ids==NULL){
                     perror("malloc");
                     exit(1);
                 }
                 args[*argscnt].ids[0].type = 'l';
                 args[*argscnt].ids[0].id = strdup(argv[i]+2);
-                if (args[*argscnt].ids[0].id == NULL) {
+                if(args[*argscnt].ids[0].id == NULL){
                     perror("strdup");
                     exit(1);
                 }

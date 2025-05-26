@@ -4,7 +4,7 @@
 #include "argparser.h"
 #include "util_ls.h"
 #include "util_cd.h"
-
+#include "util_diff.h"
 
 int main(int argc, char** argv){
     int argscnt=0;
@@ -15,7 +15,7 @@ int main(int argc, char** argv){
 
     if(strcmp(argv[1], "task1") == 0){
         char* input_fname = getInFile(argc, argv);
-        if(input_fname == NULL) {
+        if(input_fname == NULL){
             fprintf(stderr, "input file not foudn\n");
             return 1;
         }
@@ -25,7 +25,7 @@ int main(int argc, char** argv){
             output_fname = "output.out";
 
         FILE* in= fopen(input_fname, "r");
-        if(in == NULL) {
+        if(in == NULL){
             fprintf(stderr, "cannot open %s \n", input_fname);
             return 1;
         }
@@ -109,9 +109,9 @@ int main(int argc, char** argv){
         }
 
     } else if(strcmp(argv[1], "task3")== 0){
-        const char* srcpath = argv[2];
-        const char* dstpath = argv[3];
-        const char* outpath = NULL;
+        char* srcpath = argv[2];
+        char* dstpath = argv[3];
+        char* outpath = NULL;
     
         for(int i=4; i<argc; i++)
             if(strncmp(argv[i], "--out=", 6) == 0)
@@ -123,6 +123,28 @@ int main(int argc, char** argv){
         }
     
         util_cd(srcpath, dstpath, outpath);
+        return 0;
+    } else if(strcmp(argv[1], "task4")== 0){
+        char* file1 = argv[2];
+        char* file2 = argv[3];
+        char* outpath = NULL;
+    
+        for(int i=4; i<argc; i++){
+            if(strncmp(argv[i], "--out=", 6) == 0){
+                outpath = argv[i] + 6;
+                break;
+            } else if(strcmp(argv[i], "--out") == 0 && i+1 < argc){
+                outpath = argv[i+1];
+                break;
+            }
+        }
+    
+        if(outpath==NULL){
+            fprintf(stderr, "outpath does not exist\n");
+            return 1;
+        }
+    
+        util_diff(file1, file2, outpath);
         return 0;
     }
     

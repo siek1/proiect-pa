@@ -83,7 +83,7 @@ struct dirnode* build_tree_with_stack(const char* path){
         snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
         struct stat st;
-        if(stat(full_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+        if(stat(full_path, &st) == 0 && S_ISDIR(st.st_mode)){
             push(&stackTop, full_path);
         }
     }
@@ -184,7 +184,7 @@ void util_cd(const char *srcpath, const char *dstpath, const char *output_file){
         }
     }
 
-    if (out) fclose(out);
+    if(out) fclose(out);
     deleteStack(&down);
     deleteStack(&rev);
     if(root) free_tree(root);
