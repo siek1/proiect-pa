@@ -8,19 +8,19 @@
 
 #define MAX 1024
 
-struct fileinfo {
+struct fileinfo{
     char* path;
     off_t size;
 };
 
-struct directoryinfo {
+struct directoryinfo{
     char* path;
     int depth;
     struct fileinfo* files;
-    int filecount;
+    int filecnt;
 };
 
-void showsize(off_t size, int hreadable, FILE* out){
+static void showsize(off_t size, int hreadable, FILE* out){
     int n = 1024;
     if(!hreadable){
         fprintf(out, "%ld", size);
@@ -37,14 +37,23 @@ void showsize(off_t size, int hreadable, FILE* out){
 }
 
 
-void listdir(const char* basedir,int depth, int showdirs, int hreadable, int recursive, FILE* out){
+static void listdir(const char* basedir,int depth, int showdirs, int hreadable, int recursive, FILE* out){
     DIR* dir=opendir(basedir);
     if(dir==NULL) return;
 
-    struct dirent* entry;
+    const struct dirent* entry;
     // struct fileinfo* fileinfo;
-    struct fileinfo files[1024];
-    int filecnt = 0;
+    
+    // struct fileinfo files[1024];
+    // int filecnt = 0;
+    
+    struct directoryinfo dirinfo;
+    dirinfo.path = strdup(basedir);
+    dirinfo.depth = depth;
+    dirinfo.files = malloc(1024 * sizeof(struct fileinfo));
+    dirinfo.filecnt = 0;
+
+
     char* subdirs[1024];
     int subdircnt =0;
     // int depth = 0;
@@ -64,8 +73,8 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
             if(S_ISDIR(st.st_mode)){
                 subdirs[subdircnt++] = strdup(fullpath);
             } else if(S_ISREG(st.st_mode)){
-                files[filecnt].path = strdup(entry->d_name);
-                files[filecnt++].size = st.st_size;
+                dirinfo.files[dirinfo.filecnt].path = strdup(entry->d_name);
+                dirinfo.files[dirinfo.filecnt++].size = st.st_size;
             }
         }
         // }
@@ -75,11 +84,9 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
 
     // printeaza . si .. la inceput
     if(depth == 0){
-        for(int j=0; j<depth; ++j) fprintf(out, "    ");
         showsize(4096, hreadable, out);
         fprintf(out, " .\n");
-    
-        for(int j=0; j<depth; ++j) fprintf(out, "    ");
+
         showsize(4096, hreadable, out);
         fprintf(out, " ..\n");
     }
@@ -111,11 +118,11 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
     }
 
     // add files to merged
-    for(int i=0; i<filecnt; i++){
+    for(int i=0; i<dirinfo.filecnt; i++){
         merged[mcnt].isdir = 0;
-        merged[mcnt].size = files[i].size;
+        merged[mcnt].size = dirinfo.files[i].size;
         merged[mcnt].fullpath = NULL;
-        merged[mcnt].name = files[i].path;
+        merged[mcnt].name = dirinfo.files[i].path;
         mcnt++;
     }
 
@@ -144,20 +151,26 @@ void listdir(const char* basedir,int depth, int showdirs, int hreadable, int rec
         // list dir recursively just after printing it
         if(recursive && merged[i].isdir){
             listdir(merged[i].fullpath, depth + 1, showdirs, hreadable, recursive, out);
-            free(merged[i].fullpath);
+            // free(merged[i].fullpath);
         }
     }
 
+    //free
+    for(int i=0; i<mcnt; i++){
+        if (merged[i].isdir && merged[i].fullpath)
+            free(merged[i].fullpath);
+    }
+ 
+    for(int i=0; i<dirinfo.filecnt; i++)
+        free(dirinfo.files[i].path);
 
-    // free 
-    for(int i=0; i<filecnt; i++)
-        free(files[i].path);
-
-    for(int i=0; i<subdircnt; i++)
-        if(subdirs[i]) free(subdirs[i]);
+    free(dirinfo.files);
+    free(dirinfo.path);
+    // for(int i=0; i<subdircnt; i++)
+    //     if(subdirs[i]) free(subdirs[i]);
     
 }
 
-void util_ls(char* basedir, int showdirs, int hreadable, int recursive, FILE* out){
+void util_ls(const char* basedir, int showdirs, int hreadable, int recursive, FILE* out){
     listdir(basedir, 0, showdirs, hreadable, recursive, out);
 }

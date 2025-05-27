@@ -3,6 +3,6 @@
 
 #include<stdio.h>
 
-void util_ls(char* basedir, int showdirs, int hreadable, int recursive, FILE* out);
+void util_ls(const char* basedir, int showdirs, int hreadable, int recursive, FILE* out);
 
 #endif

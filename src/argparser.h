@@ -21,7 +21,7 @@ void parseInFile(FILE* input_file, struct argument* args, int* argscnt);
 void setDefFlags(struct argument* args, int argscnt);
 void procArgv(int argc, char** argv, struct argument* args, int* argscnt);
 void writeOutFile(FILE* out, struct argument* args, int argscnt);
-void printArg(FILE* out, const struct argument* arg);
+// void printArg(FILE* out, const struct argument* arg);
 void generateArgsFromArgv(int argc, char** argv, struct argument* args, int* argscnt);
 
 #endif // ARG_PARSER_H

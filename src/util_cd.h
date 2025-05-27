@@ -18,12 +18,12 @@ struct dirnode{
 
 void util_cd(const char* srcpath, const char* dstpath, const char* output_file);
 
-struct dirnode* build_tree_with_stack(const char* path);
-void free_tree(struct dirnode* root);
+// struct dirnode* build_tree_with_stack(const char* path);
+// void free_tree(struct dirnode* node);
 
-int isEmpty(Node* top);
-void push(Node** top, const char* val);
-char* pop(Node** top);
-void deleteStack(Node** top);
+// int isEmpty(Node* top);
+// void push(Node** top, const char* val);
+// char* pop(Node** top);
+// void deleteStack(Node** top);
 
 #endif 

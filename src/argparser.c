@@ -32,9 +32,11 @@ void parseInFile(FILE* input_file, struct argument* args, int* argscnt){
     char line[100];
     while(fgets(line, sizeof(line), input_file)){
         line[strcspn(line, "\n")] = '\0';
-        char* x[20];    
-        int count = 0;
+          
         char* p = strtok(line, " "); 
+        int count = 0;
+
+        char *x[20] = {0}; 
         while(p && count < 20){
             x[count++] = p; 
             p = strtok(NULL, " ");   
@@ -84,6 +86,10 @@ void setDefFlags(struct argument* args, int argscnt){
     for(int i=0; i<argscnt; i++){
         if(args[i].type == 'f' && args[i].value == NULL){
             int* val = malloc(sizeof(int));
+            if (!val) {
+                perror("malloc failed");
+                exit(1);
+            }
             *val = 1;
             args[i].value = val;
         }
@@ -114,8 +120,13 @@ void procArgv(int argc, char** argv, struct argument* args, int* argscnt){
 
                 if(strcmp(cur, complet) == 0){
                     if(args[j].type == 'f'){
-                        if(!args[j].value)
+                        if(!args[j].value){
                             args[j].value = malloc(sizeof(int));
+                            if (args[j].value == NULL) {
+                                perror("malloc failed");
+                                exit(1);
+                            }
+                        }
                         *((int*)args[j].value) = 1;
                     } else if(args[j].type == 'o'){
                         if((i + 1) < argc && argv[i + 1][0] != '-'){
@@ -129,10 +140,15 @@ void procArgv(int argc, char** argv, struct argument* args, int* argscnt){
                     ok = 1;
                     break;
                 } else if(strncmp(cur, complet, strlen(complet)) == 0 && cur[strlen(complet)] == '='){
-                    char* val = cur + strlen(complet) + 1;
+                    const char* val = cur + strlen(complet) + 1;
                     if(args[j].type == 'f'){
-                        if(!args[j].value)
+                        if(!args[j].value){
                             args[j].value = malloc(sizeof(int));
+                            if (args[j].value == NULL) {
+                                perror("malloc failed");
+                                exit(1);
+                            }
+                        }
                         *((int*)args[j].value) = 1;
                     } else if(args[j].type == 'o'){
                         free(args[j].value);
@@ -166,9 +182,9 @@ void procArgv(int argc, char** argv, struct argument* args, int* argscnt){
     }
 }
 
-void printArg(FILE* out, const struct argument* arg){
+static void printArg(FILE* out, const struct argument* arg){
     if(arg->type == 'a'){
-        char* val = (char*)arg->value;
+        const char* val = (char*)arg->value;
         if(val == NULL)
             fprintf(out, "a \n");
         else
@@ -202,7 +218,7 @@ void printArg(FILE* out, const struct argument* arg){
                     fprintf(out, " -%s", arg->ids[j].id);
             }
 
-            char* val = arg->value ? (char*)arg->value : "";
+            const char* val = arg->value ? (char*)arg->value : "";
             fprintf(out, " o %s \n", val);
         }
     }
@@ -250,7 +266,7 @@ void generateArgsFromArgv(int argc, char** argv, struct argument* args, int* arg
                 }
                 for(int j=0; j<flagcnt; j++){
                     args[*argscnt].ids[j].type = 's';
-                    char temp[2] = { argv[i][j + 1], '\0' };
+                    const char temp[2] = { argv[i][j + 1], '\0' };
                     args[*argscnt].ids[j].id = strdup(temp);
                     if(args[*argscnt].ids[j].id == NULL){
                         perror("strdup");

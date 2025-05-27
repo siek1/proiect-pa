@@ -21,7 +21,7 @@ typedef struct{
     int capacity;
 } PriorityQueue;
 
-PriorityQueue* createPriorityQueue(int capacity){
+static PriorityQueue* createPriorityQueue(int capacity){
     PriorityQueue* pq = (PriorityQueue*)malloc(sizeof(PriorityQueue));
     if(pq == NULL) return NULL;
     pq->nodes = (PQNode*)malloc(capacity*sizeof(PQNode));
@@ -30,20 +30,20 @@ PriorityQueue* createPriorityQueue(int capacity){
     return pq;
 }
 
-void swap(PQNode *a, PQNode *b){
+static void swap(PQNode *a, PQNode *b){
     PQNode temp = *a;
     *a = *b;
     *b = temp;
 }
 
-void heapifyUp(PriorityQueue *pq, int index){
+static void heapifyUp(PriorityQueue *pq, int index){
     while(index > 0 && pq->nodes[(index-1)/2].cost > pq->nodes[index].cost){
         swap(&pq->nodes[(index-1)/2], &pq->nodes[index]);
         index=(index-1)/2;
     }
 }
 
-void heapifyDown(PriorityQueue *pq, int index){
+static void heapifyDown(PriorityQueue *pq, int index){
     int smallest = index;
     int left = 2*index+1;
     int right = 2*index+2;
@@ -59,12 +59,12 @@ void heapifyDown(PriorityQueue *pq, int index){
     }
 }
 
-int isEmptyPQ(PriorityQueue* pq){
+static int isEmptyPQ(const PriorityQueue* pq){
     return pq->size == 0;
 }
 
 
-void enQueue(PriorityQueue *pq, PQNode node){
+static void enQueue(PriorityQueue *pq, PQNode node){
     if(pq->size == pq->capacity) return;
     pq->nodes[pq->size]=node;
     pq->size++;
@@ -72,7 +72,7 @@ void enQueue(PriorityQueue *pq, PQNode node){
 }
 
 
-PQNode deQueue(PriorityQueue *pq){
+static PQNode deQueue(PriorityQueue *pq){
     if(isEmptyPQ(pq))
         return (PQNode){INT_MAX, -1, -1};
     
@@ -86,7 +86,7 @@ PQNode deQueue(PriorityQueue *pq){
 }
 
 
-void deletePriorityQueue(PriorityQueue* pq){
+static void deletePriorityQueue(PriorityQueue* pq){
     if(pq != NULL){
         free(pq->nodes);
         free(pq);
@@ -108,8 +108,8 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
 
     char line1[MAX_LEN], line2[MAX_LEN];
     while(1){
-        char *read1 = fgets(line1, MAX_LEN, f1);
-        char *read2 = fgets(line2, MAX_LEN, f2);
+        const char *read1 = fgets(line1, MAX_LEN, f1);
+        const char *read2 = fgets(line2, MAX_LEN, f2);
 
         if(!read1 && !read2) break;
 
@@ -124,10 +124,27 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
 
         // matrix
         int **cost = malloc((m+1) * sizeof(int*));
+        if(cost == NULL){
+            perror("malloc failed for cost matrix");
+            exit(1);
+        }
         bool **visited = malloc((m+1) * sizeof(bool*));
+        if (visited == NULL) {
+            perror("malloc failed");
+            exit(EXIT_FAILURE);
+        }
+
         for(int i=0; i<=m; i++){
             cost[i] = malloc((n+1)*sizeof(int));
+            if(cost[i] == NULL){
+                perror("malloc failed for cost[i]");
+                exit(1);
+            }
             visited[i] = malloc((n+1) * sizeof(bool));
+            if(visited[i] == NULL){
+                perror("malloc failed for visited[i]");
+                exit(1);
+            }
             for(int j=0; j<=n; j++){
                 cost[i][j] = INT_MAX;
                 visited[i][j] = false;
@@ -215,9 +232,9 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
         fprintf(out, "%dD %dI %dR \n", del, ins, rep);
 
         // free
-        for(int i=0; i<=m; i++){
-            free(cost[i]);
-            free(visited[i]);
+        for(int k=0; k<=m; k++){
+            free(cost[k]);
+            free(visited[k]);
         }
         free(cost);
         free(visited);

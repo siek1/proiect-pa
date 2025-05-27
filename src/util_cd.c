@@ -4,11 +4,17 @@
 #include<dirent.h>
 #include<sys/stat.h>
 #include "util_cd.h"
+static void free_tree(struct dirnode* node); // for style issues 
 
-char** split(const char* path, int* count){
+
+static char** split(const char* path, int* count){
     char* pathcpy = strdup(path);
     char** parts = malloc(100 * sizeof(char*));
-    char* p = strtok(pathcpy, "/");
+    if (parts == NULL) {
+        perror("malloc failed");
+        exit(1);
+    }
+    const char* p = strtok(pathcpy, "/");
     int i=0;
     while(p){
         parts[i++] = strdup(p);
@@ -19,25 +25,29 @@ char** split(const char* path, int* count){
     return parts;
 }
 
-int find_root(char** srcparts, int srclen, char** dstparts, int dstlen){
+static int find_root(char** srcparts, int srclen, char** dstparts, int dstlen){
     int i=0;
     while(i<srclen && i<dstlen && strcmp(srcparts[i], dstparts[i]) == 0)
         i++;
     return i; 
 }
 
-int isEmpty(Node* top){
+static int isEmpty(const Node* top){
     return top==NULL;
 }
 
-void push(Node** top, const char* val){
+static void push(Node** top, const char* val){
     Node* newNode = malloc(sizeof(Node));
+    if (newNode == NULL) {
+        perror("malloc failed");
+        return;
+    }
     newNode->val = strdup(val);
     newNode->next = *top;
     *top = newNode;
 }
 
-char* pop(Node** top){
+static char* pop(Node** top){
     if(isEmpty(*top)) return NULL;
     Node* temp = *top;
     char* val = strdup(temp->val);
@@ -47,10 +57,9 @@ char* pop(Node** top){
     return val;
 }
 
-void deleteStack(Node** top){
-    Node* temp;
+static void deleteStack(Node** top){
     while((*top) != NULL){  // echivalent cu !isEmpty(*top)
-        temp = *top;
+        Node* temp = *top;
         *top = (*top)->next;
         free(temp);
     }
@@ -58,7 +67,7 @@ void deleteStack(Node** top){
 
 
 
-struct dirnode* build_tree_with_stack(const char* path){
+static struct dirnode* build_tree_with_stack(const char* path){
     DIR* dir = opendir(path);
 
     if(!dir){
@@ -67,6 +76,12 @@ struct dirnode* build_tree_with_stack(const char* path){
     }
 
     struct dirnode* node = malloc(sizeof(struct dirnode));
+    if(node == NULL){
+        perror("malloc failed");
+        closedir(dir);
+        // deleteStack(&stackTop);
+        return NULL;
+    }
     const char* last_slash = strrchr(path, '/');
     strcpy(node->name, last_slash ? last_slash + 1 : path);
     node->childcnt = 0;
@@ -74,7 +89,7 @@ struct dirnode* build_tree_with_stack(const char* path){
 
     Node* stackTop = NULL;
 
-    struct dirent* entry;
+    const struct dirent* entry;
     while((entry = readdir(dir)) != NULL){
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
@@ -90,7 +105,15 @@ struct dirnode* build_tree_with_stack(const char* path){
 
     while(!isEmpty(stackTop)){
         char* subpath = pop(&stackTop);
-        node->children = realloc(node->children, (node->childcnt + 1) * sizeof(struct dirnode*));
+        void* tmp = realloc(node->children, (node->childcnt + 1) * sizeof(struct dirnode*));
+        if(tmp == NULL){
+            perror("realloc failed");
+            free_tree(node);
+            deleteStack(&stackTop);
+            closedir(dir);
+            return NULL;
+        }
+        node->children = tmp;
         node->children[node->childcnt++] = build_tree_with_stack(subpath);
         free(subpath);
     }
@@ -100,14 +123,15 @@ struct dirnode* build_tree_with_stack(const char* path){
     return node;
 }
 
-void free_tree(struct dirnode* node){
+static void free_tree(struct dirnode* node){
     for(int i=0; i<node->childcnt; i++)
-        free(node->children[i]);
+        free_tree(node->children[i]);
+        // free(node->children[i]);
     free(node->children);
     free(node);
 }
 
-int find_path_full(struct dirnode* node, char** target_parts, int target_len, int depth, Node** pathStack){
+static int find_path_full(struct dirnode* node, char** target_parts, int target_len, int depth, Node** pathStack){
     if(!node) return 0;   
     if(depth >= target_len) return 0;
     if(strcmp(node->name, target_parts[depth]) != 0) return 0;

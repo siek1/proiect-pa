@@ -8,19 +8,17 @@
 
 int main(int argc, char** argv){
     int argscnt=0;
-    int showdirs=0;
-    int hreadable=0;
-    int recursive=0;
+    
 
 
     if(strcmp(argv[1], "task1") == 0){
-        char* input_fname = getInFile(argc, argv);
+        const char* input_fname = getInFile(argc, argv);
         if(input_fname == NULL){
             fprintf(stderr, "input file not foudn\n");
             return 1;
         }
 
-        char* output_fname=getOutFile(argc, argv);
+        const char* output_fname=getOutFile(argc, argv);
         if(output_fname==NULL)
             output_fname = "output.out";
 
@@ -31,6 +29,11 @@ int main(int argc, char** argv){
         }
 
         struct argument* args = malloc(100 * sizeof(struct argument));
+        if(args == NULL){
+            fprintf(stderr, "malloc failed\n");
+            exit(1);
+        }
+        
         parseInFile(in, args, &argscnt);
         fclose(in);
 
@@ -55,9 +58,14 @@ int main(int argc, char** argv){
                 free(args[i].value);
             
         }
+        free(args);
 
     } else if(strcmp(argv[1], "task2") == 0){
         struct argument* args=malloc(100 * sizeof(struct argument));
+        if(args == NULL){
+            fprintf(stderr, "malloc failed\n");
+            exit(1);
+        }
 
         //Diferit de functia de la task1
         generateArgsFromArgv(argc, argv, args, &argscnt);
@@ -65,9 +73,13 @@ int main(int argc, char** argv){
 
         setDefFlags(args, argscnt);
         procArgv(argc, argv, args, &argscnt);
-        char* output_fname=getOutFile(argc, argv);
+        const char* output_fname=getOutFile(argc, argv);
         if(output_fname==NULL)
             output_fname = "output.out";
+        
+        int showdirs=0;
+        int hreadable=0;
+        int recursive=0;
         
         for(int i=0; i<argscnt; i++){
             if(args[i].type == 'f'){
@@ -83,7 +95,7 @@ int main(int argc, char** argv){
             }
         }
         
-        char* dir_param=argv[2];
+        const char* dir_param=argv[2];
         if(dir_param == NULL) dir_param = ".";
         
         FILE* out = fopen(output_fname, "w");
@@ -105,13 +117,13 @@ int main(int argc, char** argv){
             }
             if(args[i].value)
                 free(args[i].value);
-            
         }
+        free(args);
 
     } else if(strcmp(argv[1], "task3")== 0){
-        char* srcpath = argv[2];
-        char* dstpath = argv[3];
-        char* outpath = NULL;
+        const char* srcpath = argv[2];
+        const char* dstpath = argv[3];
+        const char* outpath = NULL;
     
         for(int i=4; i<argc; i++)
             if(strncmp(argv[i], "--out=", 6) == 0)
@@ -125,9 +137,9 @@ int main(int argc, char** argv){
         util_cd(srcpath, dstpath, outpath);
         return 0;
     } else if(strcmp(argv[1], "task4")== 0){
-        char* file1 = argv[2];
-        char* file2 = argv[3];
-        char* outpath = NULL;
+        const char* file1 = argv[2];
+        const char* file2 = argv[3];
+        const char* outpath = NULL;
     
         for(int i=4; i<argc; i++){
             if(strncmp(argv[i], "--out=", 6) == 0){
