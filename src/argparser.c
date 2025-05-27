@@ -4,14 +4,15 @@
 #include<string.h>
 
 char* getInFile(int argc, char** argv){
-    for(int i=1; i< argc; i++){
-        if((strcmp(argv[i],"-f") == 0 || strcmp(argv[i], "--file") == 0))
-            if(i+1<argc)
+    for(int i=1; i<argc; i++){
+        if((strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0)){
+            if(i+1 < argc)
                 return argv[i+1];
-        else if(strncmp(argv[i], "-f=", 3) == 0)
+        } else if(strncmp(argv[i], "-f=", 3) == 0){
             return argv[i] + 3;
-        else if(strncmp(argv[i], "--file=", 7) == 0) 
+        } else if(strncmp(argv[i], "--file=", 7) == 0){
             return argv[i] + 7;
+        }
     }
     return NULL;
 }

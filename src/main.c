@@ -158,9 +158,9 @@ int main(int argc, char** argv){
     
         util_diff(file1, file2, outpath);
         return 0;
+    } else {
+        printf("%s", "invalid task \n");
     }
-    
-
-    printf("%s", "invalid task \n");
+   
     return 0;
 }
