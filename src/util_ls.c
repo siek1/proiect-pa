@@ -12,7 +12,7 @@
 
 struct fileinfo{
     char* path;
-    off_t size;
+    off_t size; //dimensiunea fisierului in bytes
 };
 
 struct directoryinfo{
@@ -62,7 +62,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
     
     entry=readdir(dir);
     while(entry != NULL){
-        // if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0){
+        // skip . si ..
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0){
             entry = readdir(dir);
             continue;
@@ -70,6 +70,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
         char fullpath[MAX];
         snprintf(fullpath, MAX, "%s/%s", basedir, entry->d_name);
 
+        // obtinem info despre fisier/dir cu stat()
         struct stat st;
         if(stat(fullpath, &st) != -1){
             if(S_ISDIR(st.st_mode)){
@@ -79,7 +80,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
                 dirinfo.files[dirinfo.filecnt++].size = st.st_size;
             }
         }
-        // }
+        // citim urmatorul entry
         entry = readdir(dir);  
     }
     closedir(dir);
@@ -101,7 +102,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
     } merged[2048];    
     int mcnt = 0;
     
-   // add subdirs to merged
+   // adauga subdirs in merged
     for(int i=0; i<subdircnt; i++){
         struct stat st;
         stat(subdirs[i], &st); 
@@ -119,7 +120,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
         mcnt++;
     }
 
-    // add files to merged
+    // adauga fisiere in merged
     for(int i=0; i<dirinfo.filecnt; i++){
         merged[mcnt].isdir = 0;
         merged[mcnt].size = dirinfo.files[i].size;
@@ -128,7 +129,7 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
         mcnt++;
     }
 
-    // sort merged arr by naem
+    // sorteaza merged dupa nume
     for(int i=0; i<mcnt-1; i++){
         for(int j=i+1; j<mcnt; j++){
             if(strcmp(merged[i].name, merged[j].name) > 0){
@@ -168,8 +169,8 @@ static void listdir(const char* basedir,int depth, int showdirs, int hreadable, 
 
     free(dirinfo.files);
     free(dirinfo.path);
-    // for(int i=0; i<subdircnt; i++)
-    //     if(subdirs[i]) free(subdirs[i]);
+    // for(int i=0; i<subdircnt; i++
+    //     if(subdirs[i]) free(subdirs[i])
     
 }
 

@@ -24,4 +24,4 @@ void writeOutFile(FILE* out, struct argument* args, int argscnt);
 // void printArg(FILE* out, const struct argument* arg);
 void generateArgsFromArgv(int argc, char** argv, struct argument* args, int* argscnt);
 
-#endif // ARG_PARSER_H
+#endif 

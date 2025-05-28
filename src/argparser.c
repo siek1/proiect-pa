@@ -83,6 +83,7 @@ void parseInFile(FILE* input_file, struct argument* args, int* argscnt){
     }
 }
 
+//toate flag-urile care nu au o valoare setata primesc valoarea 1
 void setDefFlags(struct argument* args, int argscnt){
     for(int i=0; i<argscnt; i++){
         if(args[i].type == 'f' && args[i].value == NULL){
@@ -97,6 +98,7 @@ void setDefFlags(struct argument* args, int argscnt){
     }
 }
 
+//actualizeaza struct ul pe baza a ceea ce gaseste in argv
 void procArgv(int argc, char** argv, struct argument* args, int* argscnt){
     for(int i=1; i<argc; i++){
         char* cur = argv[i];
@@ -271,7 +273,7 @@ void generateArgsFromArgv(int argc, char** argv, struct argument* args, int* arg
                     args[*argscnt].ids[j].id = strdup(temp);
                     if(args[*argscnt].ids[j].id == NULL){
                         perror("strdup");
-                        exit(EXIT_FAILURE);
+                        exit(1);
                     }
                 }
                 (*argscnt)++;

@@ -106,6 +106,7 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
         return;
     }
 
+    // citeste linie cu linie din ambele fisiere
     char line1[MAX_LEN], line2[MAX_LEN];
     while(1){
         const char *read1 = fgets(line1, MAX_LEN, f1);
@@ -113,21 +114,25 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
 
         if(!read1 && !read2) break;
 
+        // verificam daca unul dintre fisiere s-a terminat
         if(!read1) line1[0] = '\0';
         if(!read2) line2[0] = '\0';
 
+        // eliminam newline ul
         line1[strcspn(line1, "\n")] = '\0';
         line2[strcspn(line2, "\n")] = '\0';
 
         int n = strlen(line1);  // ref
         int m = strlen(line2);  // compare
 
-        // matrix
+        // matricea de costuri - cost[i][j]
         int **cost = malloc((m+1) * sizeof(int*));
         if(cost == NULL){
             perror("malloc failed for cost matrix");
             exit(1);
         }
+
+        // matricea de vizitare - visited[i][j] pentru Dijkstra
         bool **visited = malloc((m+1) * sizeof(bool*));
         if (visited == NULL) {
             perror("malloc failed");
@@ -145,6 +150,7 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
                 perror("malloc failed for visited[i]");
                 exit(1);
             }
+            //initializare matricea de costuri si vizitare
             for(int j=0; j<=n; j++){
                 cost[i][j] = INT_MAX;
                 visited[i][j] = false;
@@ -152,6 +158,8 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
         }
         cost[0][0] = 0;
 
+
+        // cream prioritate queue pentru Dijkstra
         PriorityQueue *pq = createPriorityQueue((m+1)*(n+1));
         enQueue(pq, (PQNode){0, 0, 0});
 
@@ -161,9 +169,12 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
             int i=current.i;
             int j=current.j;
 
+            // ignoram nodurile cu costul INT_MAX sau deja vizitate
             if(current.cost == INT_MAX || visited[i][j]) continue;
+
             visited[i][j] = true;
 
+            // daca am ajuns la final, iesim
             if(i==m && j==n) break;
 
             
@@ -175,6 +186,7 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
                 } else {
                     new_cost = cost[i][j] + COST_REPLACE;
                 }
+                // daca am gasit o cale mai buna actualizam costul
                 if(new_cost < cost[i+1][j+1]){
                     cost[i+1][j+1] = new_cost;
                     enQueue(pq, (PQNode){new_cost, i+1, j+1});
@@ -184,6 +196,7 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
             // DELETE - dreapta
             if(j<n && !visited[i][j+1]){
                 int new_cost = cost[i][j] + COST_DELETE;
+                // daca am gasit o cale mai buna actualizam costul
                 if(new_cost < cost[i][j+1]){
                     cost[i][j + 1] = new_cost;
                     enQueue(pq, (PQNode){new_cost, i, j+1});
@@ -193,6 +206,7 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
             // INSERT - jos
             if(i<m && !visited[i+1][j]){
                 int new_cost = cost[i][j] + COST_INSERT;
+                // daca am gasit o cale mai buna actualizam costul
                 if(new_cost<cost[i+1][j]){
                     cost[i+1][j] = new_cost;
                     enQueue(pq, (PQNode){new_cost, i+1, j});
@@ -201,31 +215,33 @@ void util_diff(const char *file1, const char *file2, const char *outfile){
         }
 
         // path reconstruction
+        // pornim de la starea finala si mergem inapoi
         int i=m, j=n;
         int del=0, ins=0, rep=0;
 
         while(i>0 || j>0){
-            // MATCH
+            // MATCH - caractere identice
             if(i>0 && j>0 && line2[i-1] == line1[j-1]){
                 i--; j--;
             }
-            // REPLACE
+            // REPLACE - am inlocuit un caracter
             else if(i>0 && j>0 && cost[i][j] == cost[i-1][j-1] + COST_REPLACE){
                 i--; j--;
                 rep++;
             }
-            // DELETE
+            // DELETE - am sters un caracter
             else if(j>0 && cost[i][j] == cost[i][j-1] + COST_DELETE){
                 j--;
                 del++;
             }
-            // INSERT
+            // INSERT - am adaugat un caracter
             else if(i>0 && cost[i][j] == cost[i-1][j] + COST_INSERT){
                 i--;
                 ins++;
             }
         }
 
+        // daca nu am facut nici o operatie dam skip
         if(del==0 && ins==0 && rep==0 && line1[0]=='\0' && line2[0]=='\0')
             continue;
 
