@@ -20,26 +20,31 @@ int filecnt=0;
 
 int showwrngs=0;
 
+// vedem daca un fisier e sursa sau header
 int is_src(const char *fname){
     return strstr(fname, ".c") || strstr(fname, ".h");
 }
 
+// vedem daca linia e include si extragem numele fisierului
 int is_include(const char *line, char *out){
     if(sscanf(line, "#include \"%[^\"]\"", out) == 1) return 1;
     if(sscanf(line, "#include <%[^>]>", out) == 1) return 2;
     return 0;
 }
 
+// citim un fisier si extragem toate includes 
 void read_file(const char *fpath){
     FILE *f = fopen(fpath, "r");
     if(!f) return;
 
+    // calea absoluta a fisierului
     char path[PATH_MAX];
     if(!realpath(fpath, path)){
         fclose(f);
         return;
     }
 
+    //salvam calea absoluta in structura
     files[filecnt].file = strdup(path);
     files[filecnt].includecnt = 0;
 
@@ -51,8 +56,14 @@ void read_file(const char *fpath){
     char *last_slash = strrchr(dir, '/');
     if(last_slash) *last_slash = '\0';
 
+    // citim fisierul linie cu linie
     while(fgets(line, sizeof(line), f)){
+        // type 0 = nu e include
+        // type 1 = include local
+        // type 2 = include sistem
+
         int type = is_include(line, inc_raw);
+
         if(type == 1){
             size_t dir_len = strlen(dir);
             size_t inc_raw_len = strlen(inc_raw);
@@ -78,18 +89,23 @@ void read_file(const char *fpath){
     filecnt++;
 }
 
+
+// parcurgem un director si citim toate fisierele sursa 
 void traverse_dir(const char *dirpath){
     DIR *d = opendir(dirpath);
     if(!d) return;
 
     struct dirent *entry;
     while((entry = readdir(d))){
+        // skip la . si ..
         if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
         char full_path[PATH_MAX];
         
         size_t dirpathlen = strlen(dirpath);
         size_t dnamelen = strlen(entry->d_name);
+        
+        // verificam sa nu depasim PATH_MAX
         if(dirpathlen + 1 + dnamelen < PATH_MAX){ //+1 for /
             strcpy(full_path, dirpath);
             strcat(full_path, "/");
@@ -99,11 +115,14 @@ void traverse_dir(const char *dirpath){
             continue;
         }
 
+        // informatii despre fisier sau director
         struct stat st;
         if(stat(full_path, &st) == -1) continue;
 
+        // daca e director il parcurgem recursiv
         if(S_ISDIR(st.st_mode))
             traverse_dir(full_path);
+        // daca e sursa il citim
         else if(is_src(entry->d_name))
             read_file(full_path);
     }
